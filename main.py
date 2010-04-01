@@ -150,7 +150,7 @@ class Lienzo(gtk.DrawingArea):
             for point in self.divisionPoints:
                 cr.set_source_rgb(1,1,1)
                 cr.move_to(point, 15)
-                cr.line_to(point,WINDOW_SIZE-40)
+                cr.line_to(point,WINDOW_SIZE-15)
                 cr.set_line_width(0.6)
                 cr.stroke()
             for i in xrange(len(self.classificationList)):
@@ -179,7 +179,7 @@ class Lienzo(gtk.DrawingArea):
             for point in self.divisionPoints:
                 cr.set_source_rgb(1,1,1)
                 cr.move_to(point, WINDOW_SIZE-85)
-                cr.line_to(point,WINDOW_SIZE-40)
+                cr.line_to(point,WINDOW_SIZE-15)
                 cr.set_line_width(0.6)
                 cr.stroke()
             
