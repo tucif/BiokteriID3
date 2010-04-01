@@ -17,43 +17,25 @@ from virus import DEFAULT_WIDTH as VIRUS_WIDTH, DEFAULT_HEIGHT as VIRUS_HEIGHT
 from cell import DEFAULT_WIDTH as CELL_WIDTH, DEFAULT_HEIGHT as CELL_HEIGHT
 from display import display_simulation
 from hud import Hud
-from constants import WINDOW_SIZE, TOTAL_VIRUS, MAX_CELLS
+from constants import WINDOW_SIZE, TOTAL_VIRUS, MAX_CELLS, TRAIN_CELLS
 
 from genetics.geneticAlgorithm import evolve
 
-virList =[Virus(
-           random.randint(0,WINDOW_SIZE-VIRUS_WIDTH),
-           random.randint(0,WINDOW_SIZE-VIRUS_HEIGHT),
-           random.randint(0,127),
-           random.randint(0,15),
-           random.randint(0,127),
-           random.randint(0,127)
-            ) for i in xrange(TOTAL_VIRUS)]
+virList =[]
 
-cellList =[Cell(
-           random.randint(0,WINDOW_SIZE-CELL_WIDTH),
-           random.randint(0,WINDOW_SIZE-CELL_HEIGHT),
-           random.randint(0,127),
-           random.randint(0,15),
-           random.randint(0,127),
-           random.randint(0,127)
-            ) for i in xrange(MAX_CELLS)]
+cellList =[]
 
 #Lienzo es donde se pintara todo
 class Lienzo(gtk.DrawingArea):
     def __init__(self, ventana):
-        """"""
         super(Lienzo, self).__init__()
-        
         #Cambiar el color de fondo de la ventana
         self.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color(0,0,0))
         # Pedir el tamano de la ventana
         self.set_size_request(WINDOW_SIZE,WINDOW_SIZE)
-
         #Asignar la ventana que recibe de paramentro a la ventana que se
         #utilizara en el lienzo
         self.ventana=ventana
-
         #expose-event es una propiedad de DrawingArea que le dice como
         #dibujares, aqui le decimos que utilize nuestra funcion paint
         #para ese evento en vez del que trae por defaul.
@@ -63,20 +45,23 @@ class Lienzo(gtk.DrawingArea):
         self.connect("button_release_event",self.button_release)
         self.connect("motion_notify_event",self.actualizar_dragged)
         self.set_events(gtk.gdk.BUTTON_PRESS_MASK|gtk.gdk.BUTTON_RELEASE_MASK|gtk.gdk.POINTER_MOTION_MASK)
-
-        #Inicializar todos los valores
-        self.init_simulation()
         self.hud=Hud()
+
+        #cells
+        self.virus=[]
+        self.cells=[]
         
-        #virus
-        self.virus=virList
-        self.cells=cellList
-
         self.draggingObject = None
-        self.corriendo = True
-
         self.objetoSeleccionado=[]
-        #gobject.timeout_add(20, self.mainloop) ########################################################
+
+        self.currentState="Training"
+        self.classificationList=["Type1","Type2","Type3"]
+        self.divisionPoints=[]
+        self.trainingSet=[]
+
+        self.trainingZoneLimit=WINDOW_SIZE-100
+
+        self.init_simulation()
 
     def actualizar_dragged(self,widget,event):
         if self.draggingObject:
@@ -89,16 +74,66 @@ class Lienzo(gtk.DrawingArea):
 
     def init_simulation(self):
         """Inicializacion de valores"""
+        self.reset()
         gobject.timeout_add(20, self.on_timer)
+
+    def run_simulation(self,extra=0):
+        self.currentState="Running"
+        for cell in self.cells:
+            cell.width=20
+            cell.height=20
+            cell.velX=random.randint(1,5)/5.0
+            cell.velY=random.random()
+            for i in xrange(len(self.divisionPoints)):
+                if cell.posX+cell.width/2<self.divisionPoints[i]:
+                    if i==0:
+                        cell.posX=random.randint(0,self.divisionPoints[i]-cell.width)
+                    else:
+                        cell.posX=random.randint(self.divisionPoints[i-1],self.divisionPoints[i]-cell.width)
+                    cell.posY=random.randint(WINDOW_SIZE-100+cell.height, WINDOW_SIZE-cell.height)
+                    self.trainingSet.append((cell,self.classificationList[i]))
+                    break
+            
+        self.cells =[Cell(
+           random.randint(0,WINDOW_SIZE-CELL_WIDTH),
+           random.randint(0,WINDOW_SIZE-CELL_HEIGHT),
+            ) for i in xrange(MAX_CELLS)]
+        self.virus =[Virus(
+           random.randint(0,WINDOW_SIZE-VIRUS_WIDTH),
+           random.randint(0,WINDOW_SIZE-VIRUS_HEIGHT),
+            ) for i in xrange(TOTAL_VIRUS)]
+
+    def reset(self,extra=0):
+        self.currentState="Training"
+        self.trainingSet=[]
+        for i in xrange(len(self.classificationList)):
+            self.divisionPoints.append((WINDOW_SIZE/len(self.classificationList))*(i+1))
+        self.cells =[Cell(
+           random.randint(0,WINDOW_SIZE-CELL_WIDTH),
+           random.randint(0,WINDOW_SIZE-CELL_HEIGHT),
+            ) for i in xrange(TRAIN_CELLS)]
 
     def update(self):
         self.queue_draw()
-        for virus in self.virus:
-            if not virus.isDead:
-                virus.update()
         for cell in self.cells:
-            cell.update()
+            cell.update(self.currentState)
             
+        if self.currentState=="Running":
+            for virus in self.virus:
+                if not virus.isDead:
+                    virus.update()
+            for (cell,type) in self.trainingSet:
+                for i in xrange(len(self.classificationList)):
+                    if type==self.classificationList[i]:
+                        rightLimit=self.divisionPoints[i]
+                        if i==0:
+                            leftLimit=0
+                        else:
+                            leftLimit=self.divisionPoints[i-1]
+                        break
+                            
+                cell.update(self.currentState,[leftLimit,rightLimit-cell.width,self.trainingZoneLimit,WINDOW_SIZE-cell.height])
+
     def paint(self, widget, event):
         """Nuestro metodo de pintado propio"""
 
@@ -109,11 +144,63 @@ class Lienzo(gtk.DrawingArea):
         cr.set_source_rgb(0,0,0)
         cr.paint()
 
-
         #pintar a los agentes
-        display_simulation(cr,self.virus,self.cells)
-        self.hud.display_viruses(cr, self.virus)
-        self.hud.display_cells(cr,self.cells)
+        if self.currentState=="Training":
+            for point in self.divisionPoints:
+                cr.set_source_rgb(1,1,1)
+                cr.move_to(point, 15)
+                cr.line_to(point,WINDOW_SIZE-40)
+                cr.set_line_width(0.6)
+                cr.stroke()
+            for i in xrange(len(self.classificationList)):
+                text=str(self.classificationList[i])
+                if i==0:
+                    posXText=(self.divisionPoints[i])/2-(len(text)/2)*5
+                else:
+                    posXText=(self.divisionPoints[i-1]+self.divisionPoints[i])/2-(len(text)/2)*5
+                posYText=15
+                cr.save()
+                cr.move_to(posXText,posYText)
+                cr.set_source_rgba(1,1,1,0.7)
+                cr.show_text(text)
+                cr.restore()
+                
+            display_simulation(cr,[],self.cells)
+            self.hud.display_cells(cr,self.cells)
+            self.hud.display_viruses(cr, [])
+
+        if self.currentState=="Running":
+            cr.set_source_rgb(1,1,1)
+            cr.move_to(15, WINDOW_SIZE-100)
+            cr.line_to(WINDOW_SIZE-15,WINDOW_SIZE-100)
+            cr.set_line_width(0.6)
+            cr.stroke()
+            for point in self.divisionPoints:
+                cr.set_source_rgb(1,1,1)
+                cr.move_to(point, WINDOW_SIZE-85)
+                cr.line_to(point,WINDOW_SIZE-40)
+                cr.set_line_width(0.6)
+                cr.stroke()
+            
+            for i in xrange(len(self.classificationList)):
+                text=str(self.classificationList[i])
+                if i==0:
+                    posXText=(self.divisionPoints[i])/2-(len(text)/2)*5
+                else:
+                    posXText=(self.divisionPoints[i-1]+self.divisionPoints[i])/2-(len(text)/2)*5
+                posYText=self.trainingZoneLimit+15
+                cr.save()
+                cr.move_to(posXText,posYText)
+                cr.set_source_rgba(1,1,1,0.7)
+                cr.show_text(text)
+                cr.restore()
+
+            for (cell,type) in self.trainingSet:
+                cell.paint(cr)
+
+            display_simulation(cr,self.virus,self.cells)
+            self.hud.display_cells(cr,self.cells)
+            self.hud.display_viruses(cr, self.virus)
 
         #pintar efecto de selección sobre un agente
         if self.objetoSeleccionado:
@@ -180,11 +267,15 @@ class Main(gtk.Window):
         menuBar = gtk.MenuBar()
 
         filemenu = gtk.Menu()
-        filem = gtk.MenuItem("File")
+        filem = gtk.MenuItem("Actions")
         filem.set_submenu(filemenu)
 
-        annealMenu = gtk.MenuItem("Evolve")
-        #annealMenu.connect("activate", evolution, self.lienzo)
+        annealMenu = gtk.MenuItem("Reset & Train")
+        annealMenu.connect("activate", self.lienzo.reset)
+        filemenu.append(annealMenu)
+
+        annealMenu = gtk.MenuItem("Start Simulation")
+        annealMenu.connect("activate", self.lienzo.run_simulation)
         filemenu.append(annealMenu)
 
         exit = gtk.MenuItem("Exit")

@@ -10,10 +10,6 @@ DEFAULT_HEIGHT=50
 
 class Virus(Sprite):
     def __init__(self, posX=0, posY=0,
-                 tempLevel = 0,
-                 phLevel= 0,
-                 aggresiveness=0,
-                 visibility=0
                  ):
         Sprite.__init__(self,posX,posY)
         self.width=DEFAULT_WIDTH

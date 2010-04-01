@@ -4,8 +4,8 @@ import gtk, gobject, cairo
 from sprite import Sprite
 from constants import WINDOW_SIZE
 
-DEFAULT_WIDTH=50
-DEFAULT_HEIGHT=50
+DEFAULT_WIDTH=45
+DEFAULT_HEIGHT=45
 
 COLOR_LIST=[("Red",[0.8,0.2,0.1]),("Green",[0,0.8,0.3]),("Blue",[0,0.8,0.8])]
 
@@ -14,12 +14,7 @@ ROT_DIRECTION_LIST=[("Left",-1),("Right",1)]
 INNER_SHAPE_LIST=["None","CircleStroke","CircleFill","SquareStroke","SquareFill"]
 
 class Cell(Sprite):
-    def __init__(self, posX=0, posY=0,
-                 tempLevel = 0,
-                 phLevel= 0,
-                 aggresiveness=0,
-                 visibility=0
-                 ):
+    def __init__(self, posX=0, posY=0):
         Sprite.__init__(self,posX,posY)
         self.width=DEFAULT_WIDTH
         self.height=DEFAULT_HEIGHT
@@ -33,6 +28,10 @@ class Cell(Sprite):
         self.deltaRot=0.05
         self.rotDirection=-1
         self.rot=0
+
+        #movement
+        self.degreeRot=0
+        self.deltaDegreeRot=random.random()/15
 
         #attributes
         self.outerShape=random.choice(OUTER_SHAPE_LIST)
@@ -48,14 +47,21 @@ class Cell(Sprite):
     def get_type(self):
         return "Cell"
 
-    def update(self):
+    def update(self,state,limits=[0,WINDOW_SIZE,0,WINDOW_SIZE]):
         Sprite.update(self)
         self.rot+=self.deltaRot*self.rotDirection
-
+        self.degreeRot+=self.deltaDegreeRot
         if self.hp<=0:
             self.isDead=True
         else:
             self.isDead=False;
+        if state=="Running":
+            self.posX+=self.velX
+            self.posY+=self.velY*math.cos(self.degreeRot)
+            if self.posX<=limits[0] or self.posX>=limits[1]:
+                self.velX*=-1
+            if self.posY<=limits[2] or self.posY>=limits[3]:
+                self.velY*=-1
 
     def paint(self,window):
         window.save()
@@ -69,20 +75,20 @@ class Cell(Sprite):
         #draw outer shape
         window.set_line_width(1)
         if self.outerShape=="Simple" or self.outerShape=="CircleStroke" or self.outerShape=="CircleFill":
-            window.arc(self.posX+self.width/2, self.posY+self.height/2, 25, 0.5, 2 * math.pi)
+            window.arc(self.posX+self.width/2, self.posY+self.height/2, self.width/2, 0.5, 2 * math.pi)
             window.set_source_rgb(self.outerColorList[0],self.outerColorList[1],self.outerColorList[2])
             window.set_line_width(1)
             window.stroke()
             window.restore()
             window.save()
-            cairo.Matrix.translate(ThingMatrix, 25,6)
+            cairo.Matrix.translate(ThingMatrix, self.width/2,self.width*0.12)
             window.transform ( ThingMatrix )
             if self.outerShape=="CircleStroke":
-                window.arc(self.posX+self.width/2, self.posY+self.height/2, 7, 0.0, 2 * math.pi)
+                window.arc(self.posX+self.width/2, self.posY+self.height/2, self.width*0.14, 0.0, 2 * math.pi)
                 window.set_source_rgb(self.outerColorList[0],self.outerColorList[1],self.outerColorList[2])
                 window.stroke()
             if self.outerShape=="CircleFill":
-                window.arc(self.posX+self.width/2, self.posY+self.height/2, 7, 0.0, 2 * math.pi)
+                window.arc(self.posX+self.width/2, self.posY+self.height/2, self.width*0.14, 0.0, 2 * math.pi)
                 window.set_source_rgb(self.outerColorList[0],self.outerColorList[1],self.outerColorList[2])
                 window.fill_preserve()
                 window.stroke()
@@ -111,10 +117,10 @@ class Cell(Sprite):
         window.set_line_width(1)
 
         if self.innerShape=="CircleStroke":
-            window.arc(self.posX+self.width/2, self.posY+self.height/2, 10, 0, 2 * math.pi)
+            window.arc(self.posX+self.width/2, self.posY+self.height/2, self.width*0.2, 0, 2 * math.pi)
             window.stroke()
         if self.innerShape=="CircleFill":
-            window.arc(self.posX+self.width/2, self.posY+self.height/2, 10, 0, 2 * math.pi)
+            window.arc(self.posX+self.width/2, self.posY+self.height/2, self.width*0.2, 0, 2 * math.pi)
             window.fill()
         if self.innerShape=="SquareStroke" or self.innerShape=="SquareFill":
             ThingMatrix = cairo.Matrix ( 1, 0, 0, 1, 0, 0 )

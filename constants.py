@@ -3,7 +3,8 @@ import gtk
 WINDOW_SIZE=700
 
 TOTAL_VIRUS = 1
-MAX_CELLS = 10  #Max number of cells on screen
+MAX_CELLS = 5  #Max number of cells on screen
+TRAIN_CELLS=15
 
 
 #imagenes
