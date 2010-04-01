@@ -64,6 +64,8 @@ class Cell(Sprite):
                 self.velY*=-1
 
     def paint(self,window):
+        window.stroke() #patch to prevent a stray line from appearing between text and cells
+
         window.save()
         ThingMatrix = cairo.Matrix ( 1, 0, 0, 1, 0, 0 )
         window.transform ( ThingMatrix )

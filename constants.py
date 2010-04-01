@@ -4,7 +4,7 @@ WINDOW_SIZE=700
 
 TOTAL_VIRUS = 1
 MAX_CELLS = 5  #Max number of cells on screen
-TRAIN_CELLS=15
+TRAIN_CELLS=1
 
 
 #imagenes
