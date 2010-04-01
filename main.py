@@ -11,12 +11,13 @@ import random
 pygtk.require('2.0')
 
 from sprite import Sprite
-from virus import Virus 
+from virus import Virus
+from cell import Cell
 from virus import DEFAULT_WIDTH as VIRUS_WIDTH, DEFAULT_HEIGHT as VIRUS_HEIGHT
-from environment import Environment
+from cell import DEFAULT_WIDTH as CELL_WIDTH, DEFAULT_HEIGHT as CELL_HEIGHT
 from display import display_simulation
 from hud import Hud
-from constants import WINDOW_SIZE, TOTAL_VIRUS, TOTAL_ENVIRONMENTS
+from constants import WINDOW_SIZE, TOTAL_VIRUS, MAX_CELLS
 
 from genetics.geneticAlgorithm import evolve
 
@@ -29,15 +30,14 @@ virList =[Virus(
            random.randint(0,127)
             ) for i in xrange(TOTAL_VIRUS)]
 
-environmentList=[Environment()for i in xrange(TOTAL_ENVIRONMENTS)]
-
-for virus in virList:
-    virus.update_fitness(environmentList[0])
-
-def evolution(widget, lienzo):
-    lienzo.virus =  evolve(lienzo.virus, environmentList[0])
-    for virus in lienzo.virus:
-        virus.update_fitness(environmentList[0])
+cellList =[Cell(
+           random.randint(0,WINDOW_SIZE-CELL_WIDTH),
+           random.randint(0,WINDOW_SIZE-CELL_HEIGHT),
+           random.randint(0,127),
+           random.randint(0,15),
+           random.randint(0,127),
+           random.randint(0,127)
+            ) for i in xrange(MAX_CELLS)]
 
 #Lienzo es donde se pintara todo
 class Lienzo(gtk.DrawingArea):
@@ -68,15 +68,9 @@ class Lienzo(gtk.DrawingArea):
         self.init_simulation()
         self.hud=Hud()
         
-        #celulas
+        #virus
         self.virus=virList
-
-        self.virus_meta = Virus((WINDOW_SIZE-VIRUS_WIDTH-130),40,
-                                environmentList[0].temp,
-                                environmentList[0].ph,
-                                environmentList[0].reactivity,
-                                environmentList[0].radar)
-        self.virus_meta.update_fitness(environmentList[0])
+        self.cells=cellList
 
         self.draggingObject = None
         self.corriendo = True
@@ -99,10 +93,11 @@ class Lienzo(gtk.DrawingArea):
 
     def update(self):
         self.queue_draw()
-        self.virus_meta.update()
         for virus in self.virus:
             if not virus.isDead:
                 virus.update()
+        for cell in self.cells:
+            cell.update()
             
     def paint(self, widget, event):
         """Nuestro metodo de pintado propio"""
@@ -116,10 +111,9 @@ class Lienzo(gtk.DrawingArea):
 
 
         #pintar a los agentes
-        display_simulation(cr,self.virus,environmentList[0])
-        self.virus_meta.paint(cr)
-        self.hud.display_viruses(cr, self.virus+[self.virus_meta])
-        self.hud.display_environment(cr,environmentList)
+        display_simulation(cr,self.virus,self.cells)
+        self.hud.display_viruses(cr, self.virus)
+        self.hud.display_cells(cr,self.cells)
 
         #pintar efecto de selección sobre un agente
         if self.objetoSeleccionado:
@@ -129,35 +123,12 @@ class Lienzo(gtk.DrawingArea):
                             self.objetoSeleccionado.width+40, self.objetoSeleccionado.height+40)
 
             cr.stroke()
-
-        text="Average fitness: %d" % (self.average_virus_fitness(self.virus))
-        cr.move_to(5,30)
-        cr.set_source_rgba(1,1,1,0.7)
-        cr.show_text(text)
-
-        #pintar recuadro que envuelve a meta_virus (el meta virus se pinta solo en su paint)
-        text="VIRUS IDEAL"
-        cr.move_to(515,20)
-        cr.set_source_rgba(1,1,1,1)
-        cr.show_text(text)
-
-        cr.set_line_width(5)
-        cr.rectangle(500-5,5,100,100)
-        cr.set_source_rgba(1,1,1,1)
-        cr.stroke()
-
-    def average_virus_fitness(self,virList):
-        accum=0
-        for virus in virList:
-            accum+=virus.fitness
-
-        return float(accum)/len(virList)
         
     #Para drag & drop
     def button_press(self,widget,event):
         if event.button == 1:
             self.objetoSeleccionado=[]
-            lstTemp = self.virus
+            lstTemp = self.virus+self.cells
             for ob in lstTemp:
                 if ob.drag(event.x,event.y):
                     self.draggingObject = ob
@@ -213,7 +184,7 @@ class Main(gtk.Window):
         filem.set_submenu(filemenu)
 
         annealMenu = gtk.MenuItem("Evolve")
-        annealMenu.connect("activate", evolution, self.lienzo)
+        #annealMenu.connect("activate", evolution, self.lienzo)
         filemenu.append(annealMenu)
 
         exit = gtk.MenuItem("Exit")
