@@ -19,8 +19,6 @@ from display import display_simulation
 from hud import Hud
 from constants import WINDOW_SIZE, TOTAL_VIRUS, MAX_CELLS, TRAIN_CELLS
 
-from genetics.geneticAlgorithm import evolve
-
 virList =[]
 
 cellList =[]
