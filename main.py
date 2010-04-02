@@ -18,7 +18,7 @@ from cell import DEFAULT_WIDTH as CELL_WIDTH, DEFAULT_HEIGHT as CELL_HEIGHT
 from display import display_simulation
 from hud import Hud
 from constants import WINDOW_SIZE, TOTAL_VIRUS, MAX_CELLS, TRAIN_CELLS
-
+from constants import CHARACTERISTICS_DICT
 virList =[]
 
 cellList =[]

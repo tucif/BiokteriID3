@@ -13,6 +13,7 @@ OUTER_SHAPE_LIST=["Simple","CircleStroke","CircleFill","Square","DoubleSquare"]
 ROT_DIRECTION_LIST=[("Left",-1),("Right",1)]
 INNER_SHAPE_LIST=["None","CircleStroke","CircleFill","SquareStroke","SquareFill"]
 
+
 class Cell(Sprite):
     def __init__(self, posX=0, posY=0):
         Sprite.__init__(self,posX,posY)
@@ -40,6 +41,18 @@ class Cell(Sprite):
 
         self.innerShape=random.choice(INNER_SHAPE_LIST)
         self.innerColor,self.innerColorList=random.choice(COLOR_LIST)
+
+    def get_characteristic(self,characName):
+        if characName == "outerShape":
+            return self.outerShape
+        if characName == "outerColor":
+            return self.outerColor
+        if characName == "outerRotation":
+            return self.outerRotation
+        if characName == "innerShape":
+            return self.innerShape
+        if characName == "innerColor":
+            return self.innerColor
 
     def __str__(self):
         return "Cell"
