@@ -40,7 +40,10 @@ class Cell(Sprite):
         self.outerRotation,self.outerRotationVal=random.choice(ROT_DIRECTION_LIST)
 
         self.innerShape=random.choice(INNER_SHAPE_LIST)
-        self.innerColor,self.innerColorList=random.choice(COLOR_LIST)
+        if self.innerShape=="None":
+            self.innerColor=None
+        else:
+            self.innerColor,self.innerColorList=random.choice(COLOR_LIST)
 
     def get_characteristic(self,characName):
         if characName == "outerShape":
@@ -77,6 +80,8 @@ class Cell(Sprite):
                 self.velY*=-1
 
     def paint(self,window):
+        window.stroke() #patch to prevent a stray line from appearing between text and cells
+
         window.save()
         ThingMatrix = cairo.Matrix ( 1, 0, 0, 1, 0, 0 )
         window.transform ( ThingMatrix )
@@ -125,27 +130,29 @@ class Cell(Sprite):
             window.restore()
  
         #draw inner shape "None","CircleStroke","CircleFill","SquareStroke","SquareFill"
-        window.set_source_rgba(self.innerColorList[0],self.innerColorList[1],self.innerColorList[2])
-        window.save()
-        window.set_line_width(1)
+        if self.innerShape!="None":
+            window.set_source_rgba(self.innerColorList[0],self.innerColorList[1],self.innerColorList[2])
 
-        if self.innerShape=="CircleStroke":
-            window.arc(self.posX+self.width/2, self.posY+self.height/2, self.width*0.2, 0, 2 * math.pi)
-            window.stroke()
-        if self.innerShape=="CircleFill":
-            window.arc(self.posX+self.width/2, self.posY+self.height/2, self.width*0.2, 0, 2 * math.pi)
-            window.fill()
-        if self.innerShape=="SquareStroke" or self.innerShape=="SquareFill":
-            ThingMatrix = cairo.Matrix ( 1, 0, 0, 1, 0, 0 )
-            window.transform ( ThingMatrix )
-            cairo.Matrix.translate(ThingMatrix, self.posX+self.width/2,self.posY+self.height/2)
-            cairo.Matrix.rotate( ThingMatrix, math.sin(self.rot))
-            cairo.Matrix.translate(ThingMatrix, -(self.posX+self.width/2),-(self.posY+self.height/2))
-            window.transform ( ThingMatrix ) # and commit it to the context
-            if self.innerShape=="SquareStroke":
-                window.rectangle((self.posX+self.width/2)-self.width/6,(self.posY+self.height/2)-self.height/6,self.width/3, self.height/3)
+            window.save()
+            window.set_line_width(1)
+
+            if self.innerShape=="CircleStroke":
+                window.arc(self.posX+self.width/2, self.posY+self.height/2, self.width*0.2, 0, 2 * math.pi)
                 window.stroke()
-            if self.innerShape=="SquareFill":
-                window.rectangle((self.posX+self.width/2)-self.width/6,(self.posY+self.height/2)-self.height/6,self.width/3, self.height/3)
+            if self.innerShape=="CircleFill":
+                window.arc(self.posX+self.width/2, self.posY+self.height/2, self.width*0.2, 0, 2 * math.pi)
                 window.fill()
-        window.restore()
+            if self.innerShape=="SquareStroke" or self.innerShape=="SquareFill":
+                ThingMatrix = cairo.Matrix ( 1, 0, 0, 1, 0, 0 )
+                window.transform ( ThingMatrix )
+                cairo.Matrix.translate(ThingMatrix, self.posX+self.width/2,self.posY+self.height/2)
+                cairo.Matrix.rotate( ThingMatrix, math.sin(self.rot))
+                cairo.Matrix.translate(ThingMatrix, -(self.posX+self.width/2),-(self.posY+self.height/2))
+                window.transform ( ThingMatrix ) # and commit it to the context
+                if self.innerShape=="SquareStroke":
+                    window.rectangle((self.posX+self.width/2)-self.width/6,(self.posY+self.height/2)-self.height/6,self.width/3, self.height/3)
+                    window.stroke()
+                if self.innerShape=="SquareFill":
+                    window.rectangle((self.posX+self.width/2)-self.width/6,(self.posY+self.height/2)-self.height/6,self.width/3, self.height/3)
+                    window.fill()
+            window.restore()

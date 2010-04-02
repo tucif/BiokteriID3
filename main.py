@@ -76,31 +76,34 @@ class Lienzo(gtk.DrawingArea):
         gobject.timeout_add(20, self.on_timer)
 
     def run_simulation(self,extra=0):
-        self.currentState="Running"
-        for cell in self.cells:
-            cell.width=20
-            cell.height=20
-            cell.velX=random.randint(1,5)/5.0
-            cell.velY=random.random()
-            for i in xrange(len(self.divisionPoints)):
-                if cell.posX+cell.width/2<self.divisionPoints[i]:
-                    if i==0:
-                        cell.posX=random.randint(0,self.divisionPoints[i]-cell.width)
-                    else:
-                        cell.posX=random.randint(self.divisionPoints[i-1],self.divisionPoints[i]-cell.width)
-                    cell.posY=random.randint(WINDOW_SIZE-100+cell.height, WINDOW_SIZE-cell.height)
-                    self.trainingSet.append((cell,self.classificationList[i]))
-                    break
-            
-        self.cells =[Cell(
-           random.randint(0,WINDOW_SIZE-CELL_WIDTH),
-           random.randint(0,WINDOW_SIZE-CELL_HEIGHT),
-            ) for i in xrange(MAX_CELLS)]
-        self.virus =[Virus(
-           random.randint(0,WINDOW_SIZE-VIRUS_WIDTH),
-           random.randint(0,WINDOW_SIZE-VIRUS_HEIGHT),
-            ) for i in xrange(TOTAL_VIRUS)]
+        if self.currentState=="Training":
+            self.currentState="Running"
+            for cell in self.cells:
+                cell.width=20
+                cell.height=20
+                cell.velX=random.randint(1,5)/5.0
+                cell.velY=random.random()
+                for i in xrange(len(self.divisionPoints)):
+                    if cell.posX+cell.width/2<self.divisionPoints[i]:
+                        if i==0:
+                            cell.posX=random.randint(0,self.divisionPoints[i]-cell.width)
+                        else:
+                            cell.posX=random.randint(self.divisionPoints[i-1],self.divisionPoints[i]-cell.width)
+                        cell.posY=random.randint(WINDOW_SIZE-100+cell.height, WINDOW_SIZE-cell.height)
+                        self.trainingSet.append((cell,self.classificationList[i]))
+                        break
 
+            self.cells =[Cell(
+               random.randint(0,WINDOW_SIZE-CELL_WIDTH),
+               random.randint(0,WINDOW_SIZE-CELL_HEIGHT),
+                ) for i in xrange(MAX_CELLS)]
+            self.virus =[Virus(
+               random.randint(0,WINDOW_SIZE-VIRUS_WIDTH),
+               random.randint(0,WINDOW_SIZE-VIRUS_HEIGHT),
+                ) for i in xrange(TOTAL_VIRUS)]
+        else:
+            pass
+        
     def reset(self,extra=0):
         self.currentState="Training"
         self.trainingSet=[]
@@ -147,7 +150,7 @@ class Lienzo(gtk.DrawingArea):
             for point in self.divisionPoints:
                 cr.set_source_rgb(1,1,1)
                 cr.move_to(point, 15)
-                cr.line_to(point,WINDOW_SIZE-40)
+                cr.line_to(point,WINDOW_SIZE-15)
                 cr.set_line_width(0.6)
                 cr.stroke()
             for i in xrange(len(self.classificationList)):
@@ -176,7 +179,7 @@ class Lienzo(gtk.DrawingArea):
             for point in self.divisionPoints:
                 cr.set_source_rgb(1,1,1)
                 cr.move_to(point, WINDOW_SIZE-85)
-                cr.line_to(point,WINDOW_SIZE-40)
+                cr.line_to(point,WINDOW_SIZE-15)
                 cr.set_line_width(0.6)
                 cr.stroke()
             
@@ -246,7 +249,7 @@ class Main(gtk.Window):
     def __init__(self):
         super(Main, self).__init__()
         self.set_title('Biokterii')
-        self.set_size_request(WINDOW_SIZE,WINDOW_SIZE)
+        self.set_size_request(WINDOW_SIZE,WINDOW_SIZE+20)
         self.set_resizable(True)
         self.set_position(gtk.WIN_POS_CENTER)
         #mainBox contiene el menu superior, contentBox(menu,lienzo) y el menu inferior
@@ -257,7 +260,7 @@ class Main(gtk.Window):
         self.contentBox= gtk.HBox(False,0) #Recibe False para no se homogeneo
         
         self.lienzo=Lienzo(self)
-        self.lienzo.set_size_request(WINDOW_SIZE-20,WINDOW_SIZE-20)
+        self.lienzo.set_size_request(WINDOW_SIZE+20,WINDOW_SIZE)
         
         self.contentBox.pack_start(self.lienzo, expand=True, fill=True, padding=0)
 
