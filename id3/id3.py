@@ -5,10 +5,10 @@ from constants import EVALUATE_FUNC_DICT
 
 class ID3Tree:
     def __init__(self, classificationList,characteristics, trainingSet ):
-        self.classes = classificationList #List containing classes (Yes, No) or (Good,Bad,Ugly)
-        self.characteristics = characteristics #List containing characteristics names
+        self.classes = classificationList #List containing classes [Yes, No] or [Good,Bad,Ugly]
+        self.characteristics = characteristics #List containing characteristics names ["outerShape","outerColor",...]
         
-        self.trainingSet = trainingSet # a list of tuples (Object (cell), class)
+        self.trainingSet = trainingSet # List of tuples like (CellObject, classification)
         self.trainingSetSize= len(self.trainingSet)
 
         self.entropyDict = {}
@@ -17,6 +17,8 @@ class ID3Tree:
         self.rootNode = None
 
     def calculate(self):
+        """Makes all the required calculus for entropies and gains and saves them
+           in the entropyDict"""
         #Generar totals con cada total para cada clase
         totals = []
         for c in self.classes:
@@ -46,6 +48,8 @@ class ID3Tree:
 
 
     def get_totals_characteristic(self, characteristicName, characteristicValues):
+        """Calculates how many patterns of each value of a certain characteristic are in the system
+           And also how many are classified as each possible class on the system"""
         totalsList = []
         for cvalue in characteristicValues:
 
@@ -60,12 +64,14 @@ class ID3Tree:
         return totalsList
 
     def characteristic_entropy(self,totals,entropies):
+        """Calculates the entropy of certain characteristic according to its possible values entropies"""
         result=0.0
         for i in xrange(totals):
             result+=(totals[i]/self.trainingSetSize)*entropies[i]
         return result
     
     def calculate_entropy(self, individualTotals, totalSystem):
+        """General rule to calculate a system entropy given a list of individual totals and the system total"""
         result = 0.0
         for tot in individualTotals:
             fraction = float(tot)/totalSystem
@@ -73,6 +79,7 @@ class ID3Tree:
         return result
         
     def get_sorted_characteristics(self):
+        """Decorate-sort-undecorate method to sort characteristics according to their entropy"""
         to_sort = []
         for charac in self.entropyDict.keys():
             [charac_entropy,charac_gain,indiv_totals,entropies] = self.entropyDict[charac]
@@ -85,7 +92,7 @@ class ID3Tree:
             
 
     def build_tree(self):
-        #generar el mappingDict de todos los nodos
+        """Builds the nodes of the tree with the enough information to be able to classify"""
         #entropy_list contains elements like:
         #[charac_name, char_entropy,char_gain,indiv_totals, entropies]
         entropy_list = get_sorted_characteristics()
@@ -100,26 +107,30 @@ class ID3Tree:
             mapping_list.append( (node,list) )            
         generate_mapping_dict(mapping_list)
 
-    #CHECAR METODO
+    
     def generate_mapping_dict(self,mapping_list):
-        index = 0
+        """Populates the mappingDict for every node on the tree"""
+        index = 0        
         while index < len(mapping_list)-1:
             currentMapping = mapping_list[index]
             currentNode = currentMapping[0]
             (charac_name, char_entropy,char_gain,indiv_totals, entropies) = currentMapping[1]
-            for i in xrange(len(currentNode.possibleValues)):
-                val = currentNode.possibleValues[i]
-                val_totals = indiv_totals[1]
-                if val_totals.count(0) == (len(val_totals)-1):
-                    #Es nodo hoja, porque todos son cero excepto uno
-                    #Obtener en que indice se encuentra
-                    for j in xrange(len(val_totals)):
-                        if val_totals[j]!=0:
+            charac_val_totals = [t[1] for t in indiv_totals]
+            k = 0
+            for value_ind_totals in charac_val_totals:
+                val = currentNode.possibleValues[k]
+                if value_ind_totals.count(0) == (len(value_ind_totals)-1):
+                    #Leave node, all are zero except from one
+                    #So lets get it's index:
+                    for j in xrange(len(charac_val_tots)):
+                        if value_ind_totals[j]!=0:
                             break
-                    self.mappingDict.update({val:self.classes[j]})
+                    #Add the mapping from the value directly to a Class
+                    self.mappingDict.update({val:self.classes[j]})                
                 else:
-                    index+=1
-                    self.mappingDict.update({val:mapping_list[index][0]})
+                    self.mappingDict.update({val:mapping_list[index+1][0]}) #Next node in mapping list
+                k+=1
+        index+=1
 
     def classify(self, pattern):
         """Determines to which class belongs the received pattern"""
