@@ -22,7 +22,7 @@ CHARACTERISTICS_DICT = {
 "outerColor":COLOR_RGB_LIST,
 "outerRotation":["Left","Right"],
 "innerShape":INNER_SHAPE_LIST,
-"innerColor":COLOR_RBG_LIST
+"innerColor":COLOR_RGB_LIST
 }
 
 EVALUATE_FUNC_DICT ={
