@@ -49,6 +49,13 @@ class Sprite():
             return True
         return False
 
+    def is_colliding_with(self, sprite):
+        if sprite:
+            if self.posX+self.width>sprite.posX and self.posX < sprite.posX+sprite.width:
+                if self.posY+self.height>sprite.posY and self.posY < sprite.posY+sprite.height:
+                    return True
+        return False
+
     def update(self):
         pass
 

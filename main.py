@@ -6,7 +6,7 @@ import gobject
 import pygtk
 
 import random
-
+from operator import indexOf
 
 pygtk.require('2.0')
 
@@ -19,8 +19,8 @@ from display import display_simulation
 from hud import Hud
 from constants import WINDOW_SIZE, TOTAL_VIRUS, MAX_CELLS, TRAIN_CELLS
 from constants import CHARACTERISTICS_DICT
+from constants import TRAINING_ZONE_LIMIT
 virList =[]
-
 cellList =[]
 
 #Lienzo es donde se pintara todo
@@ -44,6 +44,9 @@ class Lienzo(gtk.DrawingArea):
         self.connect("motion_notify_event",self.actualizar_dragged)
         self.set_events(gtk.gdk.BUTTON_PRESS_MASK|gtk.gdk.BUTTON_RELEASE_MASK|gtk.gdk.POINTER_MOTION_MASK)
         self.hud=Hud()
+        self.minTimeToNextCell=200
+        self.maxTimeToNextCell=400
+        self.ticksToNextCell=random.randint(self.minTimeToNextCell,self.maxTimeToNextCell)
 
         #cells
         self.virus=[]
@@ -56,8 +59,6 @@ class Lienzo(gtk.DrawingArea):
         self.classificationList=["Type1","Type2","Type3"]
         self.divisionPoints=[]
         self.trainingSet=[]
-
-        self.trainingZoneLimit=WINDOW_SIZE-100
 
         self.init_simulation()
 
@@ -94,12 +95,13 @@ class Lienzo(gtk.DrawingArea):
                         break
 
             self.cells =[Cell(
-               random.randint(0,WINDOW_SIZE-CELL_WIDTH),
-               random.randint(0,WINDOW_SIZE-CELL_HEIGHT),
+               random.randint(0,WINDOW_SIZE),
+               random.randint(0,TRAINING_ZONE_LIMIT-CELL_HEIGHT),
+               -random.random()*2,0, "NormalCell"
                 ) for i in xrange(MAX_CELLS)]
             self.virus =[Virus(
                random.randint(0,WINDOW_SIZE-VIRUS_WIDTH),
-               random.randint(0,WINDOW_SIZE-VIRUS_HEIGHT),
+               random.randint(0,TRAINING_ZONE_LIMIT-CELL_HEIGHT),
                 ) for i in xrange(TOTAL_VIRUS)]
         else:
             pass
@@ -116,13 +118,48 @@ class Lienzo(gtk.DrawingArea):
 
     def update(self):
         self.queue_draw()
+        
+        cellsToPop=[]
         for cell in self.cells:
             cell.update(self.currentState)
-            
+            if cell.type=="NormalCell":
+                if cell.posX+cell.width<10 or (cell.status=="Dead" and len(cell.dyingParticles)<=0):
+                    cellsToPop.append(cell)
+        for cell in cellsToPop:
+            self.cells.pop(indexOf(self.cells,cell))
+            if cell==self.virus[0].targetCell:
+                self.virus[0].targetCell=None
+
         if self.currentState=="Running":
+            self.ticksToNextCell-=1
+            if self.ticksToNextCell<=0:
+                self.ticksToNextCell=random.randint(self.minTimeToNextCell,self.maxTimeToNextCell)
+                newCell=Cell(WINDOW_SIZE,
+                    random.randint(0,TRAINING_ZONE_LIMIT-CELL_HEIGHT))
+                newCell.velX=-random.random()*3
+                newCell.type="NormalCell"
+                self.cells.append(newCell)
+
+            #update virus
             for virus in self.virus:
                 if not virus.isDead:
-                    virus.update()
+                    virus.update(self.currentState)
+                    if len(self.cells)>0 and virus.targetCell==None:
+                        virus.targetCell=self.cells[len(self.cells)-1]
+                        print "change target"
+                        sel=random.randint(1,2)
+                        if sel==1:
+                            virus.attack()
+                        else:
+                            virus.analyze()
+
+                if virus.is_colliding_with(virus.targetCell):
+                    if virus.status=="Attacking":
+                        if not virus.targetCell.status:
+                            virus.targetCell.status="Dying"
+                        if virus.targetCell.status=="Dead":
+                            virus.targetCell=None
+
             for (cell,type) in self.trainingSet:
                 for i in xrange(len(self.classificationList)):
                     if type==self.classificationList[i]:
@@ -133,7 +170,7 @@ class Lienzo(gtk.DrawingArea):
                             leftLimit=self.divisionPoints[i-1]
                         break
                             
-                cell.update(self.currentState,[leftLimit,rightLimit-cell.width,self.trainingZoneLimit,WINDOW_SIZE-cell.height])
+                cell.update(self.currentState,[leftLimit,rightLimit-cell.width,TRAINING_ZONE_LIMIT,WINDOW_SIZE-cell.height])
 
     def paint(self, widget, event):
         """Nuestro metodo de pintado propio"""
@@ -145,6 +182,13 @@ class Lienzo(gtk.DrawingArea):
         cr.set_source_rgb(0,0,0)
         cr.paint()
 
+        #paint game info
+        cr.set_source_rgb(1,1,1)
+        cr.save()
+        cr.move_to(15,15)
+        text="To next cell: %d" % (self.ticksToNextCell)
+        cr.show_text(text)
+        cr.restore()
         #pintar a los agentes
         if self.currentState=="Training":
             for point in self.divisionPoints:
@@ -189,7 +233,7 @@ class Lienzo(gtk.DrawingArea):
                     posXText=(self.divisionPoints[i])/2-(len(text)/2)*5
                 else:
                     posXText=(self.divisionPoints[i-1]+self.divisionPoints[i])/2-(len(text)/2)*5
-                posYText=self.trainingZoneLimit+15
+                posYText=TRAINING_ZONE_LIMIT+15
                 cr.save()
                 cr.move_to(posXText,posYText)
                 cr.set_source_rgba(1,1,1,0.7)

@@ -28,12 +28,12 @@ class Hud():
         if self.allVisible:
             if self.idVisible:
                 for cell in cellList:
-                    if isinstance(cell,Cell):
+                    if isinstance(cell,Cell) and cell.status!="Dead":
                         text=str(cell)
                         posXText=cell.posX+cell.width/2-(len(text)/2)*5
                         posYText=cell.posY+ID_PADDING[1]
                         window.move_to(posXText,posYText)
-                        window.set_source_rgba(1,1,1,0.7)
+                        window.set_source_rgba(1,1,1)
                         window.show_text(text)
 
             
