@@ -168,6 +168,7 @@ class Virus(Sprite):
                     self.limitMax=300
                     self.limitMin=200
                 if self.status=="Eating":
+                    self.deltaRot=-0.5
                     self.limitMax=100
                     self.limitMin=50
                     
