@@ -173,13 +173,15 @@ class Lienzo(gtk.DrawingArea):
                         virus.targetCell=self.cells[len(self.cells)-1]
                         #This is a temprorary decision function
                         #Actual classification should do this
-                        sel=random.randint(1,3)
+                        sel=random.randint(1,4)
                         if sel==1:
                             virus.attack()
                         elif sel==2:
                             virus.analyze()
                         elif sel==3:
                             virus.defend()
+                        elif sel==4:
+                            virus.eat()
 
                 if virus.is_colliding_with(virus.targetCell):
                     if virus.status=="Attacking":

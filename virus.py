@@ -72,6 +72,9 @@ class Virus(Sprite):
     def defend(self):
         self.status="Defending"
 
+    def eat(self):
+        self.status="Eating"
+
     def update(self,state):
         Sprite.update(self)
         
@@ -164,6 +167,8 @@ class Virus(Sprite):
                     self.degreeRotX=0
                 if self.status=="Defending":
                     pass
+                if self.status=="Eating":
+                    pass
                     
             else:
                 self.velX=0
@@ -210,6 +215,8 @@ class Virus(Sprite):
                 window.set_source_rgb(1,0,0)
             if self.status=="Defending":
                 window.set_source_rgb(0,1,1)
+            if self.status=="Eating":
+                window.set_source_rgb(0,1,0)
 
             window.stroke()
             window.restore()
