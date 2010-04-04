@@ -74,8 +74,7 @@ class ID3Tree:
     def calculate_entropy(self, individualTotals, totalSystem):
         """General rule to calculate a system entropy given a list of individual totals and the system total"""
         if totalSystem==0:
-            print "total system was zero"
-            print "global total system: %f"% self.sysEntropy
+            #print "total system was zero"
             return 0.0
         
         result = 0.0
@@ -148,8 +147,16 @@ class ID3Tree:
                 next_hierarchy = nodo.hierarchy+[nodo.name]
                 next_node = self.get_max_gain_node(rama_totales_clase, rama_entropy, next_hierarchy )
 
-                nodo.mappingDict.update({rama: next_node})
-                self.genera_arbol(next_node)
+                if next_node:
+                    nodo.mappingDict.update({rama: next_node})
+                    if isinstance(next_node,CharacteristicNode):
+                        self.genera_arbol(next_node)
+                    #else:pass; #Caso base, ya acabo esa rama
+                else:
+                    #La entropia de la rama fue cero, se puede eliminar
+                    nodo.possibleValues.remove(rama)
+
+                
 
     def es_clase(self, totales_por_clase):
         class_index = -1
@@ -194,6 +201,9 @@ class ID3Tree:
                 max_gain = nodo_relative_gain
                 selected_nodo_name = nodo_name
 
+        if not selected_nodo_name:
+            return None
+        
         max_gain_node = CharacteristicNode(
                         selected_nodo_name,
                         EVALUATE_FUNC_DICT[selected_nodo_name],
