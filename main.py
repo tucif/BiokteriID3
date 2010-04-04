@@ -148,7 +148,7 @@ class Lienzo(gtk.DrawingArea):
         for cell in self.cells:
             cell.update(self.currentState)
             if cell.type=="NormalCell":
-                if cell.posX+cell.width<10 or (cell.status=="Dead" and len(cell.dyingParticles)<=0):
+                if cell.posX+cell.width<0 or (cell.status=="Dead" and len(cell.dyingParticles)<=0):
                     cellsToPop.append(cell)
         for cell in cellsToPop:
             self.cells.pop(indexOf(self.cells,cell))
@@ -161,7 +161,7 @@ class Lienzo(gtk.DrawingArea):
                 self.ticksToNextCell=random.randint(self.minTimeToNextCell,self.maxTimeToNextCell)
                 newCell=Cell(WINDOW_SIZE,
                     random.randint(0,TRAINING_ZONE_LIMIT-CELL_HEIGHT))
-                newCell.velX=-random.random()*3
+                newCell.velX=-random.random()*2
                 newCell.type="NormalCell"
                 self.cells.append(newCell)
 
@@ -171,12 +171,15 @@ class Lienzo(gtk.DrawingArea):
                     virus.update(self.currentState)
                     if len(self.cells)>0 and virus.targetCell==None:
                         virus.targetCell=self.cells[len(self.cells)-1]
-                        print "change target"
-                        sel=random.randint(1,2)
+                        #This is a temprorary decision function
+                        #Actual classification should do this
+                        sel=random.randint(1,3)
                         if sel==1:
                             virus.attack()
-                        else:
+                        elif sel==2:
                             virus.analyze()
+                        elif sel==3:
+                            virus.defend()
 
                 if virus.is_colliding_with(virus.targetCell):
                     if virus.status=="Attacking":

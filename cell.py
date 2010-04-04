@@ -16,7 +16,7 @@ OUTER_SHAPE_LIST=["Simple","CircleStroke","CircleFill","Square","DoubleSquare"]
 ROT_DIRECTION_LIST=[("Left",-1),("Right",1)]
 INNER_SHAPE_LIST=["None","CircleStroke","CircleFill","SquareStroke","SquareFill"]
 
-STATUS_LIST=["Dying","Dead"]
+STATUS_LIST=["Dying","Dead","Repelled"]
 
 MAX_DYING_PARTICLES=40
 
