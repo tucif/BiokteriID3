@@ -1,6 +1,6 @@
 #ID3 Module
 import math
-import random
+
 from constants import CHARACTERISTICS_DICT
 from constants import EVALUATE_FUNC_DICT
 
@@ -109,19 +109,7 @@ class ID3Tree:
         """Builds the nodes of the tree with the enough information to be able to classify"""
         self.select_root()
         self.genera_arbol(self.rootNode)
-#        entropy_list = self.get_sorted_characteristics()
-#        mapping_list = []
-#        for list in entropy_list:
-#            (charac_name, char_entropy,char_gain,indiv_totals, entropies) = list
-#            node = CharacteristicNode(
-#                        charac_name,
-#                        EVALUATE_FUNC_DICT[charac_name],
-#                        CHARACTERISTICS_DICT[charac_name]
-#                    )
-#            mapping_list.append( (node,list) )
-#
-#        self.rootNode = mapping_list[-1][0]
-#        self.generate_mapping_dict(mapping_list)
+
 
     def select_root(self):
         entropy_list = self.get_sorted_characteristics()
@@ -218,46 +206,6 @@ class ID3Tree:
                     )
         max_gain_node.hierarchy=hierarchy
         return max_gain_node
-
-    def generate_mapping_dict(self,mapping_list):
-        """Populates the mappingDict for every node on the tree"""
-        index = 0        
-        while index < len(mapping_list)-1:
-            currentMapping = mapping_list[index]            
-            currentNode = currentMapping[0]
-            #FUCKIN NECESSARY LINE:
-            currentNode.mappingDict = {}
-            #print "Current node", currentNode
-            (charac_name, char_entropy,char_gain,indiv_totals, entropies) = currentMapping[1]
-            charac_val_totals = [t[1] for t in indiv_totals]
-            k = 0
-            for value_ind_totals in charac_val_totals:
-                #print currentNode
-                #print currentNode.possibleValues
-                val = currentNode.possibleValues[k]
-                #print val
-                #print value_ind_totals
-                if value_ind_totals.count(0) == (len(value_ind_totals)-1):
-                    print "if---"
-                    #Leave node, all are zero except from one
-                    #So lets get it's index:
-                    for j in xrange(len(value_ind_totals)):
-                        if value_ind_totals[j]!=0:
-                            break
-                    #Add the mapping from the value directly to a Class
-                    currentNode.mappingDict.update({val:self.classes[j]})
-                else:
-                    currentNode.mappingDict.update({val:mapping_list[index+1][0]}) #Next node in mapping list
-                k+=1
-            #print currentNode.mappingDict
-            index+=1
-
-        lastNode = mapping_list[-1][0]
-        for i in xrange(len(lastNode.possibleValues)):
-            v = lastNode.possibleValues[i]
-            #CHANGE THIS: random just to test
-            lastNode.mappingDict.update({v:random.choice(self.classes)})
-        print lastNode.mappingDict
 
 
     def print_tree(self):

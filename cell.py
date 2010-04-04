@@ -1,4 +1,5 @@
-import math,random
+import math
+import random
 import gtk, gobject, cairo
 
 from sprite import Sprite
