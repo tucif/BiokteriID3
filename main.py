@@ -57,7 +57,7 @@ class Lienzo(gtk.DrawingArea):
         self.objetoSeleccionado=[]
 
         self.currentState="Training"
-        self.classificationList=["Type1","Type2","Type3"]
+        self.classificationList=["Target","Enemy","Food"]
         self.divisionPoints=[]
         self.trainingSet=[]
 
@@ -135,11 +135,11 @@ class Lienzo(gtk.DrawingArea):
             if classification==self.classificationList[0]:
                 virus.attack()
             elif classification==self.classificationList[1]:
-                virus.analyze()
+                virus.defend()
             elif classification==self.classificationList[2]:
                 virus.eat()
             elif classification=="Unknown":
-                virus.defend()
+                virus.analyze()
 
     def reset(self,extra=0):
         self.currentState="Training"
