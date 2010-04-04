@@ -129,7 +129,17 @@ class Lienzo(gtk.DrawingArea):
         self.tree.print_tree()
 
     def classify_cell(self, widget):
-        print self.tree.classify(random.choice(self.cells))
+        for virus in self.virus:
+            virus.targetCell = random.choice(self.cells)
+            classification = self.tree.classify(virus.targetCell)
+            if classification==self.classificationList[0]:
+                virus.attack()
+            elif classification==self.classificationList[1]:
+                virus.analyze()
+            elif classification==self.classificationList[2]:
+                virus.eat()
+            elif classification=="Unknown":
+                virus.defend()
 
     def reset(self,extra=0):
         self.currentState="Training"
@@ -173,15 +183,9 @@ class Lienzo(gtk.DrawingArea):
                         virus.targetCell=self.cells[len(self.cells)-1]
                         #This is a temprorary decision function
                         #Actual classification should do this
-                        sel=random.randint(1,4)
-                        if sel==1:
-                            virus.attack()
-                        elif sel==2:
-                            virus.analyze()
-                        elif sel==3:
-                            virus.defend()
-                        elif sel==4:
-                            virus.eat()
+                        self.classify_cell(widget=None)
+                        
+                        
 
                 if virus.is_colliding_with(virus.targetCell):
                     if virus.status=="Attacking":

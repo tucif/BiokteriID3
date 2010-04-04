@@ -3,6 +3,7 @@ import math
 import gtk, gobject, cairo
 
 from sprite import Sprite
+
 from constants import VIRUS_IMAGE
 from constants import WINDOW_SIZE
 from constants import TRAINING_ZONE_LIMIT
