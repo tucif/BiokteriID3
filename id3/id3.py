@@ -73,7 +73,9 @@ class ID3Tree:
     
     def calculate_entropy(self, individualTotals, totalSystem):
         """General rule to calculate a system entropy given a list of individual totals and the system total"""
-        if not totalSystem:
+        if totalSystem==0:
+            print "total system was zero"
+            print "global total system: %d"% self.sysEntropy
             return 0.0
         
         result = 0.0
@@ -96,29 +98,107 @@ class ID3Tree:
         to_sort.sort()
         #Here to_sort is sorted, duh!
         sorted_tuples = to_sort
-                
+        #the returned list contains elements like:
+        #[charac_name, char_entropy,char_gain,indiv_totals, entropies]
         return [list for gain,list in sorted_tuples]
             
 
     def build_tree(self):
         """Builds the nodes of the tree with the enough information to be able to classify"""
-        #entropy_list contains elements like:
-        #[charac_name, char_entropy,char_gain,indiv_totals, entropies]
+        self.select_root()
+        self.genera_arbol(self.rootNode)
+#        entropy_list = self.get_sorted_characteristics()
+#        mapping_list = []
+#        for list in entropy_list:
+#            (charac_name, char_entropy,char_gain,indiv_totals, entropies) = list
+#            node = CharacteristicNode(
+#                        charac_name,
+#                        EVALUATE_FUNC_DICT[charac_name],
+#                        CHARACTERISTICS_DICT[charac_name]
+#                    )
+#            mapping_list.append( (node,list) )
+#
+#        self.rootNode = mapping_list[-1][0]
+#        self.generate_mapping_dict(mapping_list)
+
+    def select_root(self):
         entropy_list = self.get_sorted_characteristics()
-        mapping_list = []
-        for list in entropy_list:
-            (charac_name, char_entropy,char_gain,indiv_totals, entropies) = list
-            node = CharacteristicNode(
-                        charac_name,
-                        EVALUATE_FUNC_DICT[charac_name],
-                        CHARACTERISTICS_DICT[charac_name]
+        root_name = entropy_list[-1][0]
+        self.rootNode=CharacteristicNode(
+                        root_name,
+                        EVALUATE_FUNC_DICT[root_name],
+                        CHARACTERISTICS_DICT[root_name]
                     )
-            mapping_list.append( (node,list) )
 
-        self.rootNode = mapping_list[-1][0]
-        self.generate_mapping_dict(mapping_list)
+    def genera_arbol(self,nodo):
+        entropy_dict_entry = self.entropyDict[nodo.name]
+        nodo_entropies = entropy_dict_entry[3]
+        nodo_totales = entropy_dict_entry[2]
+        for rama in nodo.possibleValues:
+            index_rama = nodo.possibleValues.index(rama)
+            
+            rama_total, rama_totales_clase = nodo_totales[index_rama]
+            index_clase = self.es_clase(rama_totales_clase)
+            if index_clase != -1:
+                print "Hoja: ",rama, ": ",rama_totales_clase
+                nodo.mappingDict.update({rama:self.classes[index_clase]})                
+            else:                
+                print rama, ": ",rama_totales_clase
+                rama_entropy = nodo_entropies[index_rama]
 
-    
+                next_hierarchy = nodo.hierarchy+[nodo.name]
+                next_node = self.get_max_gain_node(rama_entropy, next_hierarchy )
+
+                nodo.mappingDict.update({rama: next_node})
+                self.genera_arbol(next_node)
+
+    def es_clase(self, totales_por_clase):
+        class_index = -1
+        if totales_por_clase.count(0) == (len(totales_por_clase)-1):
+            #Leaf node, all are zero except from one
+            #So lets get it's index:            
+            for j in xrange(len(totales_por_clase)):
+                if totales_por_clase[j]!=0:
+                    class_index = j
+                    break
+        return class_index
+
+                                    
+    def get_max_gain_node(self,rama_entropy, hierarchy):
+        
+        max_gain=0
+        selected_nodo_name = ""
+        #Depurar jerarquia, verificar unicamente los no utilizados previamente
+        node_list = []
+        for car in self.characteristics:
+            node_list.append(car)
+        
+        for nod in hierarchy:
+            node_list.remove(nod)
+       
+        #TEMP VALIDATION;
+        if not node_list:
+            print "empty: %s node_list with hierarchy:%s"%(str(node_list),str(hierarchy))
+            #Ultimo nodo, debe generar clases
+            #Pero cuales?
+        if not rama_entropy:
+            print "Rama entropy= %d"%rama_entropy
+
+        for nodo_name in node_list:
+            nodo_entropy = self.entropyDict[nodo_name][0]
+            nodo_relative_gain =(rama_entropy - nodo_entropy)
+            if  nodo_relative_gain > max_gain:
+                max_gain = nodo_relative_gain
+                selected_nodo_name = nodo_name
+
+        max_gain_node = CharacteristicNode(
+                        selected_nodo_name,
+                        EVALUATE_FUNC_DICT[selected_nodo_name],
+                        CHARACTERISTICS_DICT[selected_nodo_name]
+                    )
+        max_gain_node.hierarchy=hierarchy
+        return max_gain_node
+
     def generate_mapping_dict(self,mapping_list):
         """Populates the mappingDict for every node on the tree"""
         index = 0        
@@ -127,7 +207,7 @@ class ID3Tree:
             currentNode = currentMapping[0]
             #FUCKIN NECESSARY LINE:
             currentNode.mappingDict = {}
-            print "Current node", currentNode
+            #print "Current node", currentNode
             (charac_name, char_entropy,char_gain,indiv_totals, entropies) = currentMapping[1]
             charac_val_totals = [t[1] for t in indiv_totals]
             k = 0
@@ -149,7 +229,7 @@ class ID3Tree:
                 else:
                     currentNode.mappingDict.update({val:mapping_list[index+1][0]}) #Next node in mapping list
                 k+=1
-            print currentNode.mappingDict
+            #print currentNode.mappingDict
             index+=1
 
         lastNode = mapping_list[-1][0]
@@ -192,6 +272,7 @@ class CharacteristicNode:
         self.evaluate_func = evaluate_func
         self.possibleValues= possibleValues
         self.mappingDict = mappingDict
+        self.hierarchy = [] #Jerarquia de nodos padres
 
     def __str__(self):
         return self.name

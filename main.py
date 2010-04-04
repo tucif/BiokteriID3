@@ -124,9 +124,9 @@ class Lienzo(gtk.DrawingArea):
                             self.trainingSet
                             )                            
         self.tree.calculate()
-        #print self.tree.entropyDict
+        print self.tree.entropyDict
         self.tree.build_tree()        
-        #self.tree.print_tree()
+        self.tree.print_tree()
 
     def classify_cell(self, widget):
         print self.tree.classify(random.choice(self.cells))
