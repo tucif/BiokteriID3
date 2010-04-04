@@ -3,6 +3,7 @@ import math
 import gtk, gobject, cairo
 
 from sprite import Sprite
+from particleShield import ParticleShield
 from constants import VIRUS_IMAGE
 from constants import WINDOW_SIZE
 from constants import TRAINING_ZONE_LIMIT
@@ -10,7 +11,9 @@ from constants import TRAINING_ZONE_LIMIT
 DEFAULT_WIDTH=50
 DEFAULT_HEIGHT=50
 
-STATUS=["NoTarget","Analyzing","Attacking"]
+MAX_PUSH_PARTICLES=50
+
+STATUS=["NoTarget","Analyzing","Attacking","Defending"]
 
 class Virus(Sprite):
     def __init__(self, posX=0, posY=0,
@@ -40,9 +43,12 @@ class Virus(Sprite):
         self.degreeRotY=random.random()
         self.degreeRotX=random.random()
 
-        self.limitMax=150
-        self.limitMin=150
+        self.limitMax=100
+        self.limitMin=100
 
+        #effects
+        self.pushParticles=[]
+    
         #rotation
         self.transDeltaRot=0
         self.deltaRot=0.1
@@ -63,9 +69,18 @@ class Virus(Sprite):
     def analyze(self):
         self.status="Analyzing"
 
+    def defend(self):
+        self.status="Defending"
+
+    def eat(self):
+        self.status="Eating"
+
     def update(self,state):
         Sprite.update(self)
+        
         if state=="Running":
+            for particle in self.pushParticles:
+                particle.update()
             if abs(self.transVelY-self.velY)<=self.deltaTransY*2:
                 self.trasnVelY=self.velY
             elif self.transVelY < self.velY:
@@ -138,8 +153,8 @@ class Virus(Sprite):
                     self.velY=0
                 if self.status=="Analyzing":
                     self.deltaRot=0
-                    self.limitMax=150
-                    self.limitMin=150
+                    self.limitMax=100
+                    self.limitMin=100
                     if self.degreeRotX==0:
                         self.degreeRotX=random.random()
                     if self.degreeRotY==0:
@@ -150,6 +165,11 @@ class Virus(Sprite):
                     self.limitMin=1
                     self.degreeRotY=0
                     self.degreeRotX=0
+                if self.status=="Defending":
+                    pass
+                if self.status=="Eating":
+                    pass
+                    
             else:
                 self.velX=0
                 self.velY=0
@@ -166,6 +186,8 @@ class Virus(Sprite):
                 self.posX=WINDOW_SIZE-self.width
 
     def paint(self,window):
+        for particle in self.pushParticles:
+            particle.paint(window)
 
         pixbuf = self.imagen
         pixbuf1=pixbuf.scale_simple(self.width,self.height,gtk.gdk.INTERP_BILINEAR)
@@ -191,6 +213,10 @@ class Virus(Sprite):
                 window.set_source_rgb(1,1,0)
             if self.status=="Attacking":
                 window.set_source_rgb(1,0,0)
+            if self.status=="Defending":
+                window.set_source_rgb(0,1,1)
+            if self.status=="Eating":
+                window.set_source_rgb(0,1,0)
 
             window.stroke()
             window.restore()
