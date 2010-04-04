@@ -67,8 +67,10 @@ class ID3Tree:
     def characteristic_entropy(self,totals,entropies):
         """Calculates the entropy of certain characteristic according to its possible values entropies"""
         result=0.0
+        #print "Totals: %s ; Entropies: %s" %(str(totals),str(entropies))
         for i in xrange(len(totals)):
-            result+=(totals[i]/self.trainingSetSize)*entropies[i]
+            result+=(float(totals[i])/self.trainingSetSize)*entropies[i]
+        #print "Result: %f"%result
         return result
     
     def calculate_entropy(self, individualTotals, totalSystem):
@@ -76,14 +78,15 @@ class ID3Tree:
         if totalSystem==0:
             #print "total system was zero"
             return 0.0
-        
+        #print "--------------------"
         result = 0.0
         for tot in individualTotals:
-            #print totalSystem
+            #print "Total System: %d" %totalSystem
             fraction = float(tot)/totalSystem
             #print "tot: %d  / totalSys: %d= %f"%(tot,totalSystem,fraction)
             if fraction:
-                result+= -fraction * math.log(fraction,2)
+                result+= (-fraction) * math.log(fraction,2)
+            #print "result= %f"%result
         return result
         
     def get_sorted_characteristics(self):
@@ -133,6 +136,7 @@ class ID3Tree:
         entropy_dict_entry = self.entropyDict[nodo.name]
         nodo_entropies = entropy_dict_entry[3]
         nodo_totales = entropy_dict_entry[2]
+        nodo.mappingDict={}
         for rama in nodo.possibleValues:
             index_rama = nodo.possibleValues.index(rama)
             
@@ -151,10 +155,13 @@ class ID3Tree:
                     nodo.mappingDict.update({rama: next_node})
                     if isinstance(next_node,CharacteristicNode):
                         self.genera_arbol(next_node)
-                    #else:pass; #Caso base, ya acabo esa rama
+                    else:
+                        print "Found hoja: %s de nodo: %s en la rama: %s"%(next_node,nodo.name,rama)
                 else:
-                    #La entropia de la rama fue cero, se puede eliminar
-                    nodo.possibleValues.remove(rama)
+                    #La entropia de la rama fue cero
+                    
+                    nodo.mappingDict.update({rama: "Unknown"})
+                    
 
                 
 
@@ -258,7 +265,7 @@ class ID3Tree:
 
     def _print_aux(self, node):
         if isinstance(node, CharacteristicNode):
-            print "Node: %s"%node
+            print "Node: %s"%str(node)
             print node.mappingDict
             print "Possible values:"
             print node.possibleValues
@@ -273,7 +280,7 @@ class ID3Tree:
     def classify(self, pattern):
         """Determines to which class belongs the received pattern"""
         currentNode = self.rootNode
-        while currentNode not in self.classes:
+        while currentNode not in self.classes and currentNode != "Unknown":
             result = currentNode.evaluate_func(pattern)
             currentNode = currentNode.mappingDict[result]
         pattern.name="Classified: %s"% str(currentNode)
