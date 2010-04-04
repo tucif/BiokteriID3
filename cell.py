@@ -64,7 +64,7 @@ class Cell(Sprite):
 
         self.innerShape=random.choice(INNER_SHAPE_LIST)
         if self.innerShape=="None":
-            self.innerColor=None
+            self.innerColor,self.innerColorList=("Black",[0,0,0])
         else:
             self.innerColor,self.innerColorList=random.choice(COLOR_LIST)
 
