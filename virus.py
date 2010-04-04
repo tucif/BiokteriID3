@@ -3,7 +3,7 @@ import math
 import gtk, gobject, cairo
 
 from sprite import Sprite
-from particleShield import ParticleShield
+#from particleShield import ParticleShield
 from constants import VIRUS_IMAGE
 from constants import WINDOW_SIZE
 from constants import TRAINING_ZONE_LIMIT
@@ -169,6 +169,7 @@ class Virus(Sprite):
                     self.limitMax=350
                     self.limitMin=200
                 if self.status=="Eating":
+                    self.deltaRot=-0.5
                     self.limitMax=100
                     self.limitMin=50
                     
