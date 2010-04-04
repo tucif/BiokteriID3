@@ -1,5 +1,6 @@
 #ID3 Module
 import math
+import random
 from constants import CHARACTERISTICS_DICT
 from constants import EVALUATE_FUNC_DICT
 
@@ -122,17 +123,20 @@ class ID3Tree:
         """Populates the mappingDict for every node on the tree"""
         index = 0        
         while index < len(mapping_list)-1:
-            currentMapping = mapping_list[index]
+            currentMapping = mapping_list[index]            
             currentNode = currentMapping[0]
+            #FUCKIN NECESSARY LINE:
+            currentNode.mappingDict = {}
+            print "Current node", currentNode
             (charac_name, char_entropy,char_gain,indiv_totals, entropies) = currentMapping[1]
             charac_val_totals = [t[1] for t in indiv_totals]
             k = 0
             for value_ind_totals in charac_val_totals:
-                print currentNode
-                print currentNode.possibleValues
+                #print currentNode
+                #print currentNode.possibleValues
                 val = currentNode.possibleValues[k]
-                print val
-                print value_ind_totals
+                #print val
+                #print value_ind_totals
                 if value_ind_totals.count(0) == (len(value_ind_totals)-1):
                     print "if---"
                     #Leave node, all are zero except from one
@@ -145,12 +149,19 @@ class ID3Tree:
                 else:
                     currentNode.mappingDict.update({val:mapping_list[index+1][0]}) #Next node in mapping list
                 k+=1
-            print "len mappinglist : %d; index: %d" % (len(mapping_list), index)
+            print currentNode.mappingDict
             index+=1
+
+        lastNode = mapping_list[-1][0]
+        for i in xrange(len(lastNode.possibleValues)):
+            v = lastNode.possibleValues[i]
+            #CHANGE THIS: random just to test
+            lastNode.mappingDict.update({v:random.choice(self.classes)})
+        print lastNode.mappingDict
 
 
     def print_tree(self):
-       self. _print_aux(self.rootNode)
+       self._print_aux(self.rootNode)
 
     def _print_aux(self, node):
         if isinstance(node, CharacteristicNode):
@@ -171,9 +182,8 @@ class ID3Tree:
         currentNode = self.rootNode
         while currentNode not in self.classes:
             result = currentNode.evaluate_func(pattern)
-            print currentNode, result
-            print currentNode.mappingDict
-            currentNode = currentNode.mappingDict[result]            
+            currentNode = currentNode.mappingDict[result]
+        pattern.name="Classified: %s"% str(currentNode)
         return currentNode
             
 class CharacteristicNode:
