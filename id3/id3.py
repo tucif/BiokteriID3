@@ -75,7 +75,7 @@ class ID3Tree:
         """General rule to calculate a system entropy given a list of individual totals and the system total"""
         if totalSystem==0:
             print "total system was zero"
-            print "global total system: %d"% self.sysEntropy
+            print "global total system: %f"% self.sysEntropy
             return 0.0
         
         result = 0.0
@@ -139,15 +139,14 @@ class ID3Tree:
             
             rama_total, rama_totales_clase = nodo_totales[index_rama]
             index_clase = self.es_clase(rama_totales_clase)
-            if index_clase != -1:
-                print "Hoja: ",rama, ": ",rama_totales_clase
+            if index_clase != -1:                
                 nodo.mappingDict.update({rama:self.classes[index_clase]})                
             else:                
-                print rama, ": ",rama_totales_clase
+                
                 rama_entropy = nodo_entropies[index_rama]
 
                 next_hierarchy = nodo.hierarchy+[nodo.name]
-                next_node = self.get_max_gain_node(rama_entropy, next_hierarchy )
+                next_node = self.get_max_gain_node(rama_totales_clase, rama_entropy, next_hierarchy )
 
                 nodo.mappingDict.update({rama: next_node})
                 self.genera_arbol(next_node)
@@ -164,7 +163,7 @@ class ID3Tree:
         return class_index
 
                                     
-    def get_max_gain_node(self,rama_entropy, hierarchy):
+    def get_max_gain_node(self,rama_totales_clase, rama_entropy, hierarchy):
         
         max_gain=0
         selected_nodo_name = ""
@@ -178,11 +177,15 @@ class ID3Tree:
        
         #TEMP VALIDATION;
         if not node_list:
-            print "empty: %s node_list with hierarchy:%s"%(str(node_list),str(hierarchy))
             #Ultimo nodo, debe generar clases
-            #Pero cuales?
-        if not rama_entropy:
-            print "Rama entropy= %d"%rama_entropy
+            #Genera un nodo de la clase mas comun en sus entropias relativas
+            most_common_class_index=0
+            for i in xrange(len(rama_totales_clase)):
+                if rama_totales_clase[i] > most_common_class_index:
+                    most_common_class_index = i
+            
+            return self.classes[most_common_class_index]            
+        
 
         for nodo_name in node_list:
             nodo_entropy = self.entropyDict[nodo_name][0]
