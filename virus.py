@@ -161,14 +161,16 @@ class Virus(Sprite):
                         self.degreeRotY=random.random()
                 if self.status=="Attacking":
                     self.deltaRot=0.1
-                    self.limitMax=1
+                    self.limitMax=20
                     self.limitMin=1
                     self.degreeRotY=0
                     self.degreeRotX=0
                 if self.status=="Defending":
-                    pass
+                    self.limitMax=350
+                    self.limitMin=200
                 if self.status=="Eating":
-                    pass
+                    self.limitMax=100
+                    self.limitMin=50
                     
             else:
                 self.velX=0
