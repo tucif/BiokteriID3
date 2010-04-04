@@ -1,5 +1,6 @@
 # coding: utf-8
 
+from id3.id3 import ID3Tree
 import gtk
 #import cairo
 import gobject
@@ -60,6 +61,10 @@ class Lienzo(gtk.DrawingArea):
         self.divisionPoints=[]
         self.trainingSet=[]
 
+        self.trainingZoneLimit=WINDOW_SIZE-100
+
+        self.tree = None
+
         self.init_simulation()
 
     def actualizar_dragged(self,widget,event):
@@ -103,9 +108,29 @@ class Lienzo(gtk.DrawingArea):
                random.randint(0,WINDOW_SIZE-VIRUS_WIDTH),
                random.randint(0,TRAINING_ZONE_LIMIT-CELL_HEIGHT),
                 ) for i in xrange(TOTAL_VIRUS)]
+
+
+            print self.trainingSet
+            #ID3Tree Generation
+            self.generate_id3()
+
         else:
             pass
-        
+
+    def generate_id3(self):
+        self.tree = ID3Tree(
+                            self.classificationList,
+                            CHARACTERISTICS_DICT.keys(),
+                            self.trainingSet
+                            )                            
+        self.tree.calculate()
+        #print self.tree.entropyDict
+        self.tree.build_tree()        
+        #self.tree.print_tree()
+
+    def classify_cell(self, widget):
+        print self.tree.classify(random.choice(self.cells))
+
     def reset(self,extra=0):
         self.currentState="Training"
         self.trainingSet=[]
@@ -321,6 +346,10 @@ class Main(gtk.Window):
 
         annealMenu = gtk.MenuItem("Start Simulation")
         annealMenu.connect("activate", self.lienzo.run_simulation)
+        filemenu.append(annealMenu)
+
+        annealMenu = gtk.MenuItem("Test random cell")
+        annealMenu.connect("activate", self.lienzo.classify_cell)
         filemenu.append(annealMenu)
 
         exit = gtk.MenuItem("Exit")

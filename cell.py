@@ -40,6 +40,7 @@ class Cell(Sprite):
         self.transVelY=velY
 
         self.type=type
+        self.name="Cell"
         #rotation
         self.deltaRot=0.05
         self.transDeltaRot=0.05
@@ -80,7 +81,7 @@ class Cell(Sprite):
             return self.innerColor
 
     def __str__(self):
-        return "Cell"
+        return self.name
 
     def get_type(self):
         return "Cell"
