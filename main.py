@@ -289,6 +289,15 @@ class Lienzo(gtk.DrawingArea):
                             self.objetoSeleccionado.width+40, self.objetoSeleccionado.height+40)
 
             cr.stroke()
+
+        #coso
+        if self.currentState == "Running":
+            if self.virus[0].status == "Defending":
+                cr.set_line_width(2)
+                cr.set_source_rgba(1, random.random(), random.random(), 0.7)
+                cr.arc(self.virus[0].posX+25,self.virus[0].posY+25, random.randint(40, 60),0, 360)
+                cr.stroke()
+                
         
     #Para drag & drop
     def button_press(self,widget,event):
