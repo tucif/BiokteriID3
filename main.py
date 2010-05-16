@@ -45,8 +45,8 @@ class Lienzo(gtk.DrawingArea):
         self.connect("motion_notify_event",self.actualizar_dragged)
         self.set_events(gtk.gdk.BUTTON_PRESS_MASK|gtk.gdk.BUTTON_RELEASE_MASK|gtk.gdk.POINTER_MOTION_MASK)
         self.hud=Hud()
-        self.minTimeToNextCell=200
-        self.maxTimeToNextCell=400
+        self.minTimeToNextCell=150
+        self.maxTimeToNextCell=250
         self.ticksToNextCell=random.randint(self.minTimeToNextCell,self.maxTimeToNextCell)
 
         #cells

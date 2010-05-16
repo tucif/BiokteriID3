@@ -132,7 +132,25 @@ class Cell(Sprite):
                 self.posY+=self.transVelY
 
             if self.status == "defended":
-                self.velX *= 1.1
+                self.velX -= 0.1
+
+            if self.status=="BeingEaten":
+                self.deltaRot=0
+                self.velX=0
+                self.velY=0
+                if self.hp>0:
+                    self.hp-=1
+                else:
+                    self.hp=0
+                    self.status="Eaten"
+
+                if len(self.dyingParticles)<MAX_DYING_PARTICLES:
+                    self.dyingParticles.append(DyingParticle(random.randint(int(self.posX),int(self.posX+self.width)),random.randint(int(self.posY),int(self.posY+self.height)),
+                        random.random()*(pow(-1,random.randint(1,2)))*0.5,random.random()*(pow(-1,random.randint(1,2)))*0.5,0.7,100))
+
+            elif self.status=="Eaten":
+                #do something
+                self.status="Dead"
 
             if self.status=="Dying":
                 self.deltaRot=0
