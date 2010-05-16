@@ -188,11 +188,14 @@ class Lienzo(gtk.DrawingArea):
                         
 
                 if virus.is_colliding_with(virus.targetCell):
-                    if virus.status=="Attacking":
-                        if not virus.targetCell.status:
+                    if not virus.targetCell.status:
+                        if virus.status=="Attacking":
                             virus.targetCell.status="Dying"
-                        if virus.targetCell.status=="Dead":
-                            virus.targetCell=None
+                        if virus.status=="Eating":
+                            virus.targetCell.status="BeingEaten"
+
+                    if virus.targetCell.status=="Dead":
+                        virus.targetCell=None
 
             for (cell,type) in self.trainingSet:
                 for i in xrange(len(self.classificationList)):

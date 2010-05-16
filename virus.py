@@ -71,6 +71,7 @@ class Virus(Sprite):
 
     def defend(self):
         self.status="Defending"
+        self.targetCell.status="defended"
 
     def eat(self):
         self.status="Eating"

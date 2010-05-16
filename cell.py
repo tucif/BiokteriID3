@@ -30,8 +30,8 @@ class Cell(Sprite):
         self.hp=self.maxHp
         self.isDead=False
 
-        self.baseVelX=0
-        self.baseVelY=0
+        self.baseVelX=velX
+        self.baseVelY=velY
         self.velX=velX
         self.velY=velY
 
@@ -130,6 +130,9 @@ class Cell(Sprite):
 
                 self.posX+=self.transVelX
                 self.posY+=self.transVelY
+
+            if self.status == "defended":
+                self.velX *= 1.1
 
             if self.status=="Dying":
                 self.deltaRot=0
