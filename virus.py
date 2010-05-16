@@ -4,7 +4,7 @@ import gtk, gobject, cairo
 
 from sprite import Sprite
 
-from constants import VIRUS_IMAGE
+from constants import VIRUS_IMAGE, VIRUS_QUESTION
 from constants import WINDOW_SIZE
 from constants import TRAINING_ZONE_LIMIT
 
@@ -57,6 +57,10 @@ class Virus(Sprite):
         self.rotDirection=1
         self.rot=0
 
+        #questionMark effects
+        self.questionDegree=0
+        self.questionDegreeDelta=0.05
+
     def __str__(self):
         return "Virus: %s" % (self.status)
 
@@ -68,6 +72,7 @@ class Virus(Sprite):
 
     def analyze(self):
         self.status="Analyzing"
+        self.targetCell.velX=-1
 
     def defend(self):
         self.status="Defending"
@@ -160,6 +165,7 @@ class Virus(Sprite):
                         self.degreeRotX=random.random()
                     if self.degreeRotY==0:
                         self.degreeRotY=random.random()
+                    self.questionDegree+=self.questionDegreeDelta
                 if self.status=="Attacking":
                     self.deltaRot=0.1
                     self.limitMax=40
@@ -195,6 +201,14 @@ class Virus(Sprite):
     def paint(self,window):
         for particle in self.pushParticles:
             particle.paint(window)
+
+        if self.status=="Analyzing":
+            print self.questionDegree
+            pixbuf=VIRUS_QUESTION
+            pixbuf1=pixbuf.scale_simple(self.width/2,self.height/2,gtk.gdk.INTERP_BILINEAR)
+            window.set_source_pixbuf(pixbuf1,self.posX+15+math.sin(self.questionDegree)*20,self.posY-40+math.cos(self.questionDegree))
+            window.paint()
+
 
         pixbuf = self.imagen
         pixbuf1=pixbuf.scale_simple(self.width,self.height,gtk.gdk.INTERP_BILINEAR)
