@@ -9,8 +9,8 @@ TRAIN_CELLS=15
 
 
 #imagenes
-VIRUS_IMAGE=gtk.gdk.pixbuf_new_from_file("resources/virus/virus.png")
-VIRUS_QUESTION=gtk.gdk.pixbuf_new_from_file("resources/virus/question.png")
+VIRUS_IMAGE=gtk.gdk.pixbuf_new_from_file("./resources/virus/virus.png")
+VIRUS_QUESTION=gtk.gdk.pixbuf_new_from_file("./resources/virus/question.png")
 COLOR_LIST=[("Red",[0.8,0.2,0.1]),("Green",[0,0.8,0.3]),("Blue",[0,0.8,0.8])]
 
 COLOR_RGB_LIST=["Red","Green","Blue"]
